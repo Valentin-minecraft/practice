@@ -1,24 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/container"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity" >
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Введите название цвета:"
+        android:textSize="18sp"
+        android:layout_marginBottom="10dp"/>
+
+    <EditText
+        android:id="@+id/editTextColor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:layout_marginBottom="20dp"/>
 
     <Button
-        android:id="@+id/button"
-        android:layout_width="259dp"
-        android:layout_height="139dp"
-        android:layout_gravity="center"
-        android:text="Button"
-
-
-        />
-
-    <CalendarView
-        android:id="@+id/calendarView"
+        android:id="@+id/buttonApply"
         android:layout_width="match_parent"
-        android:layout_height="290dp"
-        android:background="@color/purple_200" />
-</FrameLayout>
+        android:layout_height="60dp"
+        android:text="Применить цвет"
+        android:textSize="16sp"
+        android:layout_marginBottom="30dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Палитра цветов:"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="15dp"/>
+
+    <LinearLayout
+        android:id="@+id/paletteContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"/>
+
+</LinearLayout>
