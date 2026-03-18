@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Базовая тема приложения -->
-    <style name="Theme.NavigationApp" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Убираем ActionBar, чтобы использовать Toolbar -->
+    <style
+        name="Theme.NavigationApp" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
