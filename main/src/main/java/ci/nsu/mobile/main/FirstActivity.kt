@@ -6,7 +6,11 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 
+
+
+
 class FirstActivity : AppCompatActivity() {
+
 
     private lateinit var editTextData: EditText
     private lateinit var buttonGoToSecond: Button
