@@ -33,14 +33,16 @@ fun TemperatureConverterApp() {
     // Отображаем экран
     TemperatureScreen(
         uiState = uiState,
-        onCelsiusChanged = { viewModel.onCelsiusChanged(it) }
+        onCelsiusChanged = { viewModel.onCelsiusChanged(it) },
+        onFahrenheitChanged = { viewModel.onFahrenheitChanged(it) }
     )
 }
 
 @Composable
 fun TemperatureScreen(
     uiState: TemperatureUiState,
-    onCelsiusChanged: (String) -> Unit
+    onCelsiusChanged: (String) -> Unit,
+    onFahrenheitChanged: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -49,14 +51,14 @@ fun TemperatureScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Заголовок
+
         Text(
             text = "Конвертер температуры",
             fontSize = 24.sp,
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
-        // Поле для ввода Цельсия
+
         OutlinedTextField(
             value = uiState.celsius,
             onValueChange = onCelsiusChanged,
@@ -67,18 +69,27 @@ fun TemperatureScreen(
                     Text("Введите число")
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
 
-        // Поле для ввода Фаренгейта (пока только для отображения)
+
+
         OutlinedTextField(
             value = uiState.fahrenheit,
-            onValueChange = { /* Пока ничего не делаем */ },
+            onValueChange = onFahrenheitChanged,
             label = { Text("Градусы Фаренгейта (°F)") },
-            readOnly = true,  // Пока только для чтения
-            modifier = Modifier.fillMaxWidth()
+            isError = !uiState.isFahrenheitValid && uiState.fahrenheit.isNotBlank(),
+            supportingText = {
+                if (!uiState.isFahrenheitValid && uiState.fahrenheit.isNotBlank()) {
+                    Text("Введите число")
+                }
+            },
+
         )
+
+
+
+
     }
 }
