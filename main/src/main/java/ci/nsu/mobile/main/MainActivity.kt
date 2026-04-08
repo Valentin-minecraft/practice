@@ -44,6 +44,9 @@ fun TemperatureScreen(
     onCelsiusChanged: (String) -> Unit,
     onFahrenheitChanged: (String) -> Unit
 ) {
+    val isCelsiusError = !uiState.isCelsiusValid && uiState.celsius.isNotBlank()
+    val isFahrenheitError = !uiState.isFahrenheitValid && uiState.fahrenheit.isNotBlank()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -63,9 +66,9 @@ fun TemperatureScreen(
             value = uiState.celsius,
             onValueChange = onCelsiusChanged,
             label = { Text("Градусы Цельсия (°C)") },
-            isError = !uiState.isCelsiusValid && uiState.celsius.isNotBlank(),
+            isError = isCelsiusError,
             supportingText = {
-                if (!uiState.isCelsiusValid && uiState.celsius.isNotBlank()) {
+                if (isCelsiusError) {
                     Text("Введите число")
                 }
             },
@@ -79,9 +82,9 @@ fun TemperatureScreen(
             value = uiState.fahrenheit,
             onValueChange = onFahrenheitChanged,
             label = { Text("Градусы Фаренгейта (°F)") },
-            isError = !uiState.isFahrenheitValid && uiState.fahrenheit.isNotBlank(),
+            isError = isFahrenheitError,
             supportingText = {
-                if (!uiState.isFahrenheitValid && uiState.fahrenheit.isNotBlank()) {
+                if (isFahrenheitError) {
                     Text("Введите число")
                 }
             },
