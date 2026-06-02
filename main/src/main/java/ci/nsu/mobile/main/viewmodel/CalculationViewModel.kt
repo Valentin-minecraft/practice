@@ -11,87 +11,95 @@ class CalculationViewModel(
     private val periodMonths: Int
 ) : ViewModel() {
 
-    private val _availableRates = MutableStateFlow<List<Double>>(emptyList())
+    // Доступные ставки
+    private val _availableRates = MutableStateFlow(listOf(5.0, 10.0, 15.0))
     val availableRates: StateFlow<List<Double>> = _availableRates.asStateFlow()
 
-    private val _selectedRate = MutableStateFlow(0.0)
+    // Выбранная ставка
+    private val _selectedRate = MutableStateFlow(5.0)
     val selectedRate: StateFlow<Double> = _selectedRate.asStateFlow()
 
+    // Ежемесячное пополнение
     private val _monthlyTopUp = MutableStateFlow("")
     val monthlyTopUp: StateFlow<String> = _monthlyTopUp.asStateFlow()
 
+    // Ошибки
     private val _rateError = MutableStateFlow<String?>(null)
     val rateError: StateFlow<String?> = _rateError.asStateFlow()
 
     private val _periodError = MutableStateFlow<String?>(null)
     val periodError: StateFlow<String?> = _periodError.asStateFlow()
 
-    init {
-        updateAvailableRates(periodMonths)
-        if (periodMonths <= 0) {
-            _periodError.value = "Срок вклада не указан или указан некорректно"
+    // ТЕКУЩИЙ (обновляемый) срок вклада — начинается с исходного периода
+    private val _currentPeriodMonths = MutableStateFlow(periodMonths)
+    val currentPeriodMonths: StateFlow<Int> = _currentPeriodMonths.asStateFlow()
+
+    // Получить минимальный срок для выбранной ставки
+    private fun getMinPeriodForRate(rate: Double): Int {
+        return when (rate) {
+            5.0 -> 3
+            10.0 -> 6
+            15.0 -> 12
+            else -> 3
         }
     }
 
-    private fun updateAvailableRates(months: Int) {
-        val rates = when {
-            months <= 0 -> emptyList()
-            months < 6 -> listOf(15.0)
-            months < 12 -> listOf(10.0)
-            else -> listOf(5.0)
-        }
-        _availableRates.value = rates
-        if (rates.isNotEmpty()) {
-            _selectedRate.value = rates.first()
-            _rateError.value = null
+    // Обновить срок вклада в соответствии с выбранной ставкой
+    private fun updatePeriodByRate(rate: Double) {
+        val newPeriod = getMinPeriodForRate(rate)
+        _currentPeriodMonths.value = newPeriod
+        validatePeriod()
+    }
+
+    // Проверка срока (на случай если пользователь как-то ещё меняет период)
+    private fun validatePeriod() {
+        val currentPeriod = _currentPeriodMonths.value
+        val rate = _selectedRate.value
+        val minPeriod = getMinPeriodForRate(rate)
+
+        if (currentPeriod < minPeriod) {
+            _periodError.value = "Для ставки ${rate}% минимальный срок — $minPeriod месяцев"
         } else {
-            _rateError.value = "Нет доступных ставок для указанного срока"
+            _periodError.value = null
         }
     }
 
+    // Обновить выбранную ставку (и автоматически — срок)
     fun updateSelectedRate(rate: Double) {
         _selectedRate.value = rate
-        _rateError.value = null
+        updatePeriodByRate(rate)   // ← вот здесь меняется срок!
     }
 
+    // Обновить ежемесячное пополнение
     fun updateMonthlyTopUp(value: String) {
         _monthlyTopUp.value = value
     }
 
+    // Рассчитать вклад с ИСПРАВЛЕННЫМ сроком
     fun calculateDeposit(): DepositCalculation? {
-        if (periodMonths <= 0) {
-            _periodError.value = "Срок вклада не указан"
-            return null
+        val rate = _selectedRate.value
+        val topUp = _monthlyTopUp.value.toDoubleOrNull() ?: 0.0
+        val currentPeriod = _currentPeriodMonths.value   // ← обновлённый срок
+
+        if (periodError.value != null) return null
+
+        // Простейший расчёт (без капитализации — только для примера)
+        val monthlyRate = rate / 100 / 12
+        var total = initialAmount
+        for (i in 1..currentPeriod) {
+            total += total * monthlyRate
+            total += topUp
         }
-
-        if (_availableRates.value.isEmpty()) {
-            _rateError.value = "Нет доступных ставок для указанного срока"
-            return null
-        }
-
-        val monthlyTopUpValue = _monthlyTopUp.value.toDoubleOrNull()
-        val monthlyRate = _selectedRate.value / 100 / 12
-        var currentAmount = initialAmount
-        var totalInterest = 0.0
-
-        for (month in 1..periodMonths) {
-            val interest = currentAmount * monthlyRate
-            totalInterest += interest
-            currentAmount += interest
-
-            if (monthlyTopUpValue != null && monthlyTopUpValue > 0) {
-                currentAmount += monthlyTopUpValue
-            }
-        }
+        val finalAmount = total
+        val interestEarned = finalAmount - initialAmount - topUp * currentPeriod
 
         return DepositCalculation(
             initialAmount = initialAmount,
-            periodMonths = periodMonths,
-            interestRate = _selectedRate.value,
-            monthlyTopUp = monthlyTopUpValue,
-            finalAmount = currentAmount,
-            interestEarned = totalInterest,
-            calculationDate = System.currentTimeMillis()
+            periodMonths = currentPeriod,        // ← здесь ПРАВИЛЬНЫЙ срок
+            interestRate = rate,
+            monthlyTopUp = if (topUp > 0) topUp else null,
+            interestEarned = interestEarned,
+            finalAmount = finalAmount
         )
     }
 }

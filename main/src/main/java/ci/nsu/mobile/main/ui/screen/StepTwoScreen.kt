@@ -1,26 +1,9 @@
 package ci.nsu.mobile.main.ui.screen
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ci.nsu.mobile.main.data.DepositCalculation
@@ -47,9 +30,20 @@ fun StepTwoScreen(
     val rateErrorState by viewModel.rateError.collectAsState()
     val periodErrorState by viewModel.periodError.collectAsState()
 
-    // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: сохраняем в локальные переменные
     val periodError = periodErrorState
     val rateError = rateErrorState
+
+    val rateOptions = listOf(5, 10, 15)
+
+    // Функция для получения минимального срока для выбранной ставки
+    fun getMinPeriodForRate(rate: Int): Int {
+        return when (rate) {
+            5 -> 3
+            10 -> 6
+            15 -> 12
+            else -> 3
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -80,29 +74,34 @@ fun StepTwoScreen(
                 }
             }
 
-            if (availableRates.isNotEmpty()) {
-                Text("Выберите процентную ставку:")
+            Text("Выберите процентную ставку:")
 
-                availableRates.forEach { rate ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                rateOptions.forEach { rate ->
+                    Button(
+                        onClick = {
+                            // 1. Обновляем выбранную ставку
+                            viewModel.updateSelectedRate(rate.toDouble())
+                            // 2. updatePeriod(minPeriod) — НЕ НУЖНО!
+                            //    Срок автоматически обновится внутри updateSelectedRate
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = if (selectedRate == rate.toDouble()) {
+                            ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            )
+                        }
                     ) {
-                        RadioButton(
-                            selected = selectedRate == rate,
-                            onClick = { viewModel.updateSelectedRate(rate) }
-                        )
-                        Text(
-                            text = "$rate%",
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
+                        Text("$rate%")
                     }
                 }
-            } else if (periodError == null) {
-                Text(
-                    text = "Нет доступных ставок",
-                    color = MaterialTheme.colorScheme.error
-                )
             }
 
             if (rateError != null) {
